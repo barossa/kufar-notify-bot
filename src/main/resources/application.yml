@@ -1,0 +1,15 @@
+server:
+  port: 5555
+spring:
+  datasource:
+    url: jdbc:${DATABASE_URL}/kufar-bot
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+telegramBots:
+  username: kufar_notify_bot
+  token: ${BOT_TOKE}
+  webhookPath: https://78c9-46-56-247-216.eu.ngrok.io
