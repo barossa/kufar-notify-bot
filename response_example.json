@@ -1,0 +1,134 @@
+{
+  "ads": [
+    {
+      "account_id": 0,
+      "account_parameters": [
+        {
+          "pl": "Имя",
+          "vl": "",
+          "p": "name",
+          "v": "Василий",
+          "pu": "nme"
+        }
+      ],
+      "ad_id": 154061894,
+      "ad_link": "https://www.kufar.by/item/154061894",
+      "ad_parameters": [
+        {
+          "pl": "Тип сделки",
+          "vl": "Продажа",
+          "p": "type",
+          "v": "sell",
+          "pu": "typ"
+        },
+        {
+          "pl": "Категория",
+          "vl": "Охота и рыбалка",
+          "p": "category",
+          "v": 4060,
+          "pu": "cat"
+        },
+        {
+          "pl": "Область",
+          "vl": "Минск",
+          "p": "region",
+          "v": 7,
+          "pu": "rgn"
+        },
+        {
+          "pl": "Город / Район",
+          "vl": "Фрунзенский",
+          "p": "area",
+          "v": "30",
+          "pu": "ar"
+        },
+        {
+          "pl": "Тип оплаты",
+          "vl": "Цена",
+          "p": "remuneration_type",
+          "v": "1",
+          "pu": "rtr"
+        },
+        {
+          "pl": "Состояние",
+          "vl": "Новое",
+          "p": "condition",
+          "v": "2",
+          "pu": "cnd"
+        },
+        {
+          "pl": "Товары с Куфар Доставкой",
+          "vl": "Да",
+          "p": "delivery_enabled",
+          "v": true,
+          "pu": "dle"
+        },
+        {
+          "pl": "Товары с Куфар Оплатой",
+          "vl": "Да",
+          "p": "safedeal_enabled",
+          "v": true,
+          "pu": "sde"
+        }
+      ],
+      "body": null,
+      "category": "4060",
+      "company_ad": false,
+      "currency": "BYR",
+      "images": [
+        {
+          "id": "9609617357",
+          "yams_storage": true
+        },
+        {
+          "id": "9653425938",
+          "yams_storage": true
+        },
+        {
+          "id": "9618244820",
+          "yams_storage": true
+        }
+      ],
+      "list_id": 133581752,
+      "list_time": "2022-08-07T06:09:42Z",
+      "message_id": "adid154061894",
+      "paid_services": {
+        "halva": true,
+        "highlight": false,
+        "polepos": false,
+        "ribbons": null
+      },
+      "phone_hidden": false,
+      "price_byn": "5000",
+      "price_usd": "1949",
+      "remuneration_type": "1",
+      "subject": "BJ-BUG",
+      "type": "sell"
+    }
+  ],
+  "pagination": {
+    "pages": [
+      {
+        "label": "self",
+        "num": 1,
+        "token": null
+      },
+      {
+        "label": "next",
+        "num": 2,
+        "token": "eyJ0IjoiYWJzIiwiZiI6dHJ1ZSwicCI6Mn0="
+      },
+      {
+        "label": "",
+        "num": 3,
+        "token": "eyJ0IjoiYWJzIiwiZiI6dHJ1ZSwicCI6M30="
+      },
+      {
+        "label": "",
+        "num": 4,
+        "token": "eyJ0IjoiYWJzIiwiZiI6dHJ1ZSwicCI6NH0="
+      }
+    ]
+  },
+  "total": 162
+}

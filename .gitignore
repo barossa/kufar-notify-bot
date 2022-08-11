@@ -1,4 +1,4 @@
 .idea/**
-pgdata/**
+pg_data/**
 target/**
 

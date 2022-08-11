@@ -7,9 +7,11 @@ spring:
     password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
 
 telegramBots:
   username: kufar_notify_bot
   token: ${BOT_TOKE}
-  webhookPath: https://78c9-46-56-247-216.eu.ngrok.io
+  webhookPath: https://0bd1-46-56-202-79.eu.ngrok.io
+  registerWebhook: true
+  updateIntervalMinutes: 1

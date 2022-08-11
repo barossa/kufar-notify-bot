@@ -1,4 +1,4 @@
-package by.kufar.bot.exception;
+package by.kufar.bot.handler;
 
 public class NoSuchHandlerException extends RuntimeException {
     public NoSuchHandlerException() {

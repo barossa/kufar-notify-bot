@@ -1,4 +1,4 @@
-package by.kufar.bot.bot;
+package by.kufar.bot.controller.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.objects.Update;
