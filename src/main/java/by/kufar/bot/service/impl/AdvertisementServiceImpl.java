@@ -5,6 +5,7 @@ import by.kufar.bot.entity.KufarSearchResponse;
 import by.kufar.bot.entity.SearchRequest;
 import by.kufar.bot.entity.User;
 import by.kufar.bot.handler.impl.CountResponse;
+import by.kufar.bot.repo.AdvertisementsRepository;
 import by.kufar.bot.repo.SearchRequestRepository;
 import by.kufar.bot.service.AdvertisementService;
 import by.kufar.bot.service.UserService;
@@ -13,8 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,10 +28,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private static final int MAX_PAGE_SIZE = 200;
     private final RestTemplate restTemplate;
     private final SearchRequestRepository searchRequestRepository;
+    private final AdvertisementsRepository advertisementsRepository;
     private final UserService userService;
 
     @Override
-    public List<Advertisement> findAll(String query) {
+    public Set<Advertisement> findAll(String query) {
         Set<Advertisement> advertisements = new HashSet<>();
         try {
             Optional<String> optionalToken = Optional.empty();
@@ -45,44 +47,76 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         } catch (Exception e) {
             log.error("Can't find all advertisements by query \"{}\", cause: {}", query, e.getMessage(), e);
         }
-        return new ArrayList<>(advertisements);
+        return advertisements;
     }
 
     @Override
     public SearchRequest registerSearch(String query, User user) {
-        List<Advertisement> advertisements = findAll(query);
-        SearchRequest request = new SearchRequest(0, query,
-                new HashSet<>(advertisements), LocalDateTime.now(), user);
-        log.debug("Registered new search query: \"{}\"", query);
-        return searchRequestRepository.save(request);
+        Optional<SearchRequest> requestOptional = searchRequestRepository.findSearchRequestByQueryEqualsIgnoreCase(query);
+        SearchRequest request;
+        if (requestOptional.isPresent()) {
+            request = requestOptional.get();
+            request.getUsers().add(user);
+        } else {
+            List<Advertisement> advertisements = advertisementsRepository.saveAll(findAll(query));
+            request = searchRequestRepository.save(new SearchRequest(query, advertisements, Collections.singleton(user)));
+            log.debug("Registered new search query: \"{}\"", query);
+        }
+        return request;
+    }
+
+    @Override
+    public Optional<SearchRequest> findByQuery(String query) {
+        return searchRequestRepository.findSearchRequestByQueryEqualsIgnoreCase(query);
     }
 
     @Override
     public List<SearchRequest> findUserSearches(User user) {
-        return searchRequestRepository.findSearchRequestsByUser(user);
+        return searchRequestRepository.findSearchRequestsByUsersContaining(user);
     }
 
     @Override
     public void updateSearchResults() {
         log.info("Searching for advertisement updates...");
         List<SearchRequest> requests = searchRequestRepository.findAll();
+        Map<User, Set<Advertisement>> notifications = new HashMap<>();
         for (SearchRequest request : requests) {
-            Set<Advertisement> advertisements = request.getAdvertisements();
+            Set<Advertisement> updates = updateSearchResults(request);
 
-            KufarSearchResponse response;
-            List<Advertisement> updates;
-            Optional<String> optionalToken = Optional.empty();
-            do {
-                String nextToken = optionalToken.orElse("");
-                response = doSearch(request.getQuery(), nextToken, SORT_BY_DATE_DESC);
-                updates = response.getAds().stream().filter(a -> !advertisements.contains(a)).toList();
-                optionalToken = findNextToken(response);
-                advertisements.addAll(updates);
-                userService.notify(request.getUser(), updates);
-
-            } while (updates.size() == MAX_PAGE_SIZE && optionalToken.isPresent());
-            request.setLastUpdated(LocalDateTime.now());
+            //aggregate user updates for all searches
+            for (User user : request.getUsers()) {
+                Set<Advertisement> userUpdates = notifications.get(user);
+                if (userUpdates == null) {
+                    userUpdates = new HashSet<>();
+                }
+                userUpdates.addAll(updates);
+                notifications.put(user, userUpdates);
+            }
         }
+        notifications.forEach(((user, advertisements) -> userService.notify(user, new ArrayList<>(advertisements))));
+    }
+
+    @Override
+    public Set<Advertisement> updateSearchResults(SearchRequest request) {
+        Set<Advertisement> advertisements = request.getAdvertisements();
+        Set<Advertisement> allUpdates = new HashSet<>();
+
+        Set<Advertisement> updates;
+        Optional<String> optionalToken = Optional.empty();
+        do {
+            String nextToken = optionalToken.orElse("");
+            KufarSearchResponse response = doSearch(request.getQuery(), nextToken, SORT_BY_DATE_DESC);
+            updates = response.getAds().stream()
+                    .filter(a -> !advertisements.contains(a))
+                    .map(advertisementsRepository::save)
+                    .collect(Collectors.toSet());
+            optionalToken = findNextToken(response);
+            advertisements.addAll(updates);
+            allUpdates.addAll(updates);
+
+        } while (updates.size() == MAX_PAGE_SIZE && optionalToken.isPresent());
+
+        return allUpdates;
     }
 
     @Override

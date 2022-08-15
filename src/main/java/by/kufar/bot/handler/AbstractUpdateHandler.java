@@ -6,6 +6,7 @@ import by.kufar.bot.handler.util.Button;
 import by.kufar.bot.handler.util.MessageResolver;
 import by.kufar.bot.service.MethodExecutorService;
 import by.kufar.bot.service.UpdateHandlerService;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 public abstract class AbstractUpdateHandler {
     protected final Object[] EMPTY_ARGS = new Object[]{};
     protected final UserStatus status;

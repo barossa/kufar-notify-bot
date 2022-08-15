@@ -11,7 +11,7 @@ spring:
 
 telegramBots:
   username: kufar_notify_bot
-  token: ${BOT_TOKE}
-  webhookPath: https://0bd1-46-56-202-79.eu.ngrok.io
+  token: ${BOT_TOKEN}
+  webhookPath: https://f1bd-46-56-187-137.eu.ngrok.io
   registerWebhook: true
   updateIntervalMinutes: 1

@@ -9,7 +9,6 @@ import by.kufar.bot.service.UserService;
 import by.kufar.bot.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -19,7 +18,6 @@ import java.util.List;
 
 @Slf4j
 @Component
-@Transactional
 public class NotificationBot extends SpringWebhookBot {
     private final BotConfiguration configuration;
     private final UserService userService;

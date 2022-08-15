@@ -8,6 +8,7 @@ import by.kufar.bot.service.MethodExecutorService;
 import by.kufar.bot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.Collections;

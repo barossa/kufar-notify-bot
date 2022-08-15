@@ -53,6 +53,7 @@ public class BotConfiguration {
         jobDetailFactory.setDurability(true);
         return jobDetailFactory;
     }
+
     @Bean
     public Trigger trigger(JobDetail job) {
         return TriggerBuilder.newTrigger().forJob(job)

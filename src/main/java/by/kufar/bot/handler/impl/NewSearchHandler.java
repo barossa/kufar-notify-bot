@@ -66,20 +66,15 @@ public class NewSearchHandler extends AbstractUpdateHandler {
 
     @Override
     public BotApiMethod<?> onKeyboard(User user, Button button) {
-        switch (button) {
-            case SUBMIT: {
-                Optional<User.PinnedData> queryOptional = user.getData().stream().filter(d -> d.getKey().equals(SEARCH_REQUEST_QUERY_KEY)).findFirst();
-                if (queryOptional.isPresent()) {
-                    String query = queryOptional.get().getValue();
-                    advertisementService.registerSearch(query, user);
-                    user.setStatus(UserStatus.MY_SEARCH_REQUESTS);
-                }
-                break;
+        if (button == SUBMIT) {
+            Optional<User.PinnedData> queryOptional = user.getData().stream().filter(d -> d.getKey().equals(SEARCH_REQUEST_QUERY_KEY)).findFirst();
+            if (queryOptional.isPresent()) {
+                String query = queryOptional.get().getValue();
+                advertisementService.registerSearch(query, user);
+                user.setStatus(UserStatus.MY_SEARCH_REQUESTS);
             }
-            default: {
-                user.setStatus(MENU);
-            }
-
+        } else {
+            user.setStatus(MENU);
         }
         user.clearData();
         return handlerService.handle(user, new Message());

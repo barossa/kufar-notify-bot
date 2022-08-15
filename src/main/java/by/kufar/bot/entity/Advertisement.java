@@ -31,7 +31,6 @@ public class Advertisement {
     @JsonProperty("ad_link")
     @EqualsAndHashCode.Exclude
     private String link;
-
     @JsonProperty("price_byn")
     @EqualsAndHashCode.Exclude
     private BigDecimal price;
@@ -46,5 +45,10 @@ public class Advertisement {
 
     public BigDecimal getPrice() {
         return price.divide(BYN_DIVISOR, RoundingMode.HALF_EVEN);
+    }
+
+    @Override
+    public String toString() {
+        return id + "";
     }
 }
