@@ -1,10 +1,6 @@
 server:
   port: 5555
 spring:
-  datasource:
-    url: jdbc:${DATABASE_URL}/kufar-bot
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: create-drop
