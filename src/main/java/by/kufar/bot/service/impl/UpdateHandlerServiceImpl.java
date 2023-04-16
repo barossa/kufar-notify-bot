@@ -31,7 +31,7 @@ public class UpdateHandlerServiceImpl implements UpdateHandlerService {
         BotApiMethod<?> method;
         if (!update.hasCallbackQuery()) {
             Message message = update.getMessage();
-            String text = Optional.ofNullable(message.getText()).orElse("");
+            String text = Optional.ofNullable(message).map(Message::getText).orElse("");
             Optional<Button> button = handler.findButton(text, user);
             method = button.isPresent() ? handler.onKeyboard(user, button.get()) :
                     handler.onMessage(user, message);

@@ -11,10 +11,20 @@ import by.kufar.bot.service.AdvertisementService;
 import by.kufar.bot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +40,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final SearchRequestRepository searchRequestRepository;
     private final AdvertisementsRepository advertisementsRepository;
     private final UserService userService;
+    @Value("${MAX_REQUESTS_PER_MINUTE:120}")
+    private long maxRequestsPerMinute;
 
     @Override
     public Set<Advertisement> findAll(String query) {
@@ -92,6 +104,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 userUpdates.addAll(updates);
                 notifications.put(user, userUpdates);
             }
+            request.setLastUpdated(LocalDateTime.now());
         }
         notifications.forEach(((user, advertisements) -> userService.notify(user, new ArrayList<>(advertisements))));
     }
@@ -103,7 +116,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         Set<Advertisement> updates;
         Optional<String> optionalToken = Optional.empty();
+        LocalDateTime lastRequest = null;
         do {
+            LocalDateTime nextRequestTime = getNextRequestTime(lastRequest);
+            while(nextRequestTime.isAfter(LocalDateTime.now())){}
+
             String nextToken = optionalToken.orElse("");
             KufarSearchResponse response = doSearch(request.getQuery(), nextToken, SORT_BY_DATE_DESC);
             updates = response.getAds().stream()
@@ -113,6 +130,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             optionalToken = findNextToken(response);
             advertisements.addAll(updates);
             allUpdates.addAll(updates);
+            lastRequest = LocalDateTime.now();
 
         } while (updates.size() == MAX_PAGE_SIZE && optionalToken.isPresent());
 
@@ -143,5 +161,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     private KufarSearchResponse doSearch(String query, String cursor, String sort) {
         return restTemplate.getForObject(FIND_ADS_BY_PARAMETERS, KufarSearchResponse.class, query, cursor, sort, MAX_PAGE_SIZE);
+    }
+
+    private LocalDateTime getNextRequestTime(LocalDateTime lastRequest) {
+        if (lastRequest == null) {
+            return LocalDateTime.now();
+        }
+        return lastRequest.plus(60000L / maxRequestsPerMinute, ChronoUnit.MILLIS);
     }
 }
