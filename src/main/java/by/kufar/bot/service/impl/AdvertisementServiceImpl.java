@@ -13,18 +13,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,6 +39,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private static final String SORT_BY_DATE_ASC = "lst.a";
     private static final String SORT_BY_DATE_DESC = "lst.d";
     private static final int MAX_PAGE_SIZE = 200;
+    private static final Map<String, Set<User>> usersRequests = new ConcurrentHashMap<>();
+    private static final Lock lock = new ReentrantLock();
     private final RestTemplate restTemplate;
     private final SearchRequestRepository searchRequestRepository;
     private final AdvertisementsRepository advertisementsRepository;
@@ -63,18 +68,34 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     }
 
     @Override
-    public SearchRequest registerSearch(String query, User user) {
-        Optional<SearchRequest> requestOptional = searchRequestRepository.findSearchRequestByQueryEqualsIgnoreCase(query);
-        SearchRequest request;
-        if (requestOptional.isPresent()) {
-            request = requestOptional.get();
-            request.getUsers().add(user);
-        } else {
+    @Transactional
+    public void registerSearch(String query, User user) {
+        lock.lock();
+        Set<User> users = usersRequests.get(query);
+        if(users != null){
+            users.add(user);
+            lock.unlock();
+            return;
+        }else {
+            users = new HashSet<>();
+            users.add(user);
+            usersRequests.put(query, users);
+            lock.unlock();
+        }
+
+        Optional<SearchRequest> optionalRequest = searchRequestRepository.findSearchRequestByQueryEqualsIgnoreCase(query);
+        if(optionalRequest.isPresent()){
+            SearchRequest request = optionalRequest.get();
+            lock.lock();
+            request.getUsers().addAll(usersRequests.get(query));
+            usersRequests.remove(query);
+        }else {
             List<Advertisement> advertisements = advertisementsRepository.saveAll(findAll(query));
-            request = searchRequestRepository.save(new SearchRequest(query, advertisements, Collections.singleton(user)));
+            lock.lock();
+            searchRequestRepository.save(new SearchRequest(query, advertisements, usersRequests.get(query)));
             log.debug("Registered new search query: \"{}\"", query);
         }
-        return request;
+        lock.unlock();
     }
 
     @Override
@@ -119,7 +140,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         LocalDateTime lastRequest = null;
         do {
             LocalDateTime nextRequestTime = getNextRequestTime(lastRequest);
-            while(nextRequestTime.isAfter(LocalDateTime.now())){}
+            while (nextRequestTime.isAfter(LocalDateTime.now())) {
+            }
 
             String nextToken = optionalToken.orElse("");
             KufarSearchResponse response = doSearch(request.getQuery(), nextToken, SORT_BY_DATE_DESC);

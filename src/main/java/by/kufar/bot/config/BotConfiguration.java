@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
@@ -59,5 +61,10 @@ public class BotConfiguration {
         return TriggerBuilder.newTrigger().forJob(job)
                 .withSchedule(simpleSchedule().repeatForever().withIntervalInMinutes(interval))
                 .build();
+    }
+
+    @Bean
+    public ExecutorService executorService(){
+        return Executors.newFixedThreadPool(5);
     }
 }

@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import static by.kufar.bot.entity.UserStatus.MENU;
@@ -28,10 +29,12 @@ public class NewSearchHandler extends AbstractUpdateHandler {
     private static final String CONFIRM_SEARCH_MSG_KEY = "bot.confirmSearch";
 
     private final AdvertisementService advertisementService;
+    private final ExecutorService executorService;
 
-    public NewSearchHandler(MessageResolver messageResolver, AdvertisementService advertisementService) {
+    public NewSearchHandler(MessageResolver messageResolver, AdvertisementService advertisementService, ExecutorService executorService) {
         super(NEW_SEARCH, messageResolver, List.of(SUBMIT, CANCEL, BACK));
         this.advertisementService = advertisementService;
+        this.executorService = executorService;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class NewSearchHandler extends AbstractUpdateHandler {
             Optional<User.PinnedData> queryOptional = user.getData().stream().filter(d -> d.getKey().equals(SEARCH_REQUEST_QUERY_KEY)).findFirst();
             if (queryOptional.isPresent()) {
                 String query = queryOptional.get().getValue();
-                advertisementService.registerSearch(query, user);
+                executorService.execute(() -> advertisementService.registerSearch(query, user));
                 user.setStatus(UserStatus.MY_SEARCH_REQUESTS);
             }
         } else {

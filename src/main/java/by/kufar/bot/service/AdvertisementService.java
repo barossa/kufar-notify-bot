@@ -14,7 +14,7 @@ public interface AdvertisementService {
 
     Set<Advertisement> findAll(String query);
 
-    SearchRequest registerSearch(String query, User user);
+    void registerSearch(String query, User user);
 
     Optional<SearchRequest> findByQuery(String query);
 
