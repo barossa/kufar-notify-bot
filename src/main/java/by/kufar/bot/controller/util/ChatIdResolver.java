@@ -18,7 +18,10 @@ public final class ChatIdResolver {
         } else if (update.hasMessage()) {
             id = update.getMessage().getChatId();
 
-        } else {
+        } else if (update.hasMyChatMember()){
+            id = update.getMyChatMember().getChat().getId();
+
+        }else {
             log.warn("Can't resolve chat id");
             id = UNDEFINED_ID;
         }
